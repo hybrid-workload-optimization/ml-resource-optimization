@@ -1,0 +1,14 @@
+version: '1.0'
+
+services:
+  
+  port: 6063
+  
+  database:
+    driver: cmplog
+    log_type: 'HW-Log'
+    uri: 'http://172.16.11.247:9090/cmpapi/search'
+
+  model:
+    architecture: word2vec 
+    uri: ./data/model/word2vec-wiki-words-500-with-normalization/
