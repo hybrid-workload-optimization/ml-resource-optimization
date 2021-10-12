@@ -1,0 +1,75 @@
+#!/bin/bash
+
+
+function dataset_process(){
+  echo "Dataset description."
+  echo ""
+  echo "path: /home/tester/.keras/dataset"
+  echo "file: mnist.npz"
+  echo "size: 11M"
+}
+
+function start_process(){
+  echo "Start the model training process."
+  rm -rf fig
+  mkdir fig
+  rm -rf log
+  mkdir log
+  python ./ml/evaluate.py | tee ./log/evaluate.log
+}
+
+function kill_process(){
+  echo "Kill the model training process."
+  pid=`pgrep -f evaluate.py`
+  echo "${pid}"
+  `kill -9 ${pid}`
+}
+
+function interrupt_process(){
+  echo "Interrupt description."
+  python ./ml/evaluate.py -interrupt
+}
+
+function recovery_process(){
+  echo "Recovery description."
+  echo ""
+  echo "( omitted )"
+  echo ""
+
+  # python ./ml/evaluate.py -recovery
+  # start=`grep -n "(recovery)" log/evaluate.log | grep -Eo '^[^:]+' | head -1`
+  offset=10
+  point=`grep -n "(recovery)" log/evaluate.log | grep -Eo '^[^:]+' | tail -1`
+  start=`expr $point - $offset`
+  end=`expr $point + $offset`
+  line="'${start},${end}p'"
+  cmd="sed -n ${line} log/evaluate.log"  
+  eval ${cmd}
+
+  echo ""
+  echo "( omitted )"  
+}
+
+function logs_process(){
+  echo "Outputs the model training process log."
+  tail -30 log/evaluate.log
+}
+
+function clear_process(){
+  echo "Outputs the model training process log."
+  rm -rf fig
+  rm -rf log
+  rm -rf checkpoints
+}
+
+case $1 in
+  "dataset") dataset_process;;
+	"train") start_process;;
+	"kill") kill_process;;
+  "interrupt") interrupt_process;;  
+  "recovery") recovery_process;;
+  "logs") logs_process;;
+  "clear") clear_process;;
+	*) echo "Unkown command...";;
+esac
+echo ""

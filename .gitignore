@@ -1,0 +1,9 @@
+__pycache__
+*.log
+readme.txt
+mastor.ini
+data/model
+temp
+checkpoints
+fig
+log
