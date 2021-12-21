@@ -9,5 +9,6 @@
 3. ML 서비스 시나리오   
     Flask_ML_서비스 시나리오(20211012).pptx
 
-4. ML 전의 학습 시나리오
-	Flask_ML_Transfer learning (20211216).pptx
+
+3. ML 전의 학습 시나리오   
+    Flask_ML_Transfer learning (20211216).pptx
