@@ -1,0 +1,29 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+    
+        {
+            "name": "Python: Current File",
+            "type": "python",
+            "request": "launch",
+            "program" : "${workspaceFolder}/sptek/spctl.py",
+            "args" : ["anomaly", "mastor-anomaly-ver1.yml", "--worker=10", "--verbose=1", "--log=estimator-ml-anomaly.log", "--no-route"],
+            // "args" : ["anomaly", "mastor-anomaly-train-ver1.yml", "--worker=30", "--verbose=1", "--log=estimator-ml-anomaly.log", "--no-route"],
+            // "args" : ["anomaly", "mastor-anomaly-forecast-ver1.yml", "--worker=30", "--verbose=1", "--log=estimator-ml-anomaly.log", "--no-route"],
+            // "args" : ["passwd", "encode", "1234**1234**"],
+            // "args" : ["passwd", "decode", "yUSJp4sjCjX+1FtqssPjHaNA5ZlQGT4mqXVjuuhPbEE=", "-key=6ccbe2889e9f18e9fca8d580ad7d251d22cf4f70392a1bbe3005fc1efc8f33cb"],
+            "console": "integratedTerminal"
+        }
+
+        // {
+        //     "name": "Python: Current File",
+        //     "type": "python",
+        //     "request": "launch",
+        //     "program" : "${workspaceFolder}/sptek/test.py",
+        //     "console": "integratedTerminal"
+        // }
+    ]
+}

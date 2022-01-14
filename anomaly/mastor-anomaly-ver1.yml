@@ -1,0 +1,215 @@
+version: '1.0'
+
+services:
+  port: 5050
+  # type: auto
+  # type: train
+  type: forecast
+  name: anomaly-forecast
+  
+  route: '210.217.178.154:5054'
+  endpoint: ['/v1/train', '/v1/forecast']
+
+  # set database info.
+  database:
+    - name: cmp-database
+      driver: cmplog
+      type: ['HW-Log']
+      # type: ['HW-Log', 'HW-Log', 'HW-Log']
+      # type: ['HW-Log', 'HW-Log-2', 'HW-Log-3']
+      # uri: 'http://172.16.11.247:9090/cmpapi/search'
+      uri: 'http://172.16.11.245:9091/cmpapi/search'
+
+  # set ml model info.
+  import:
+    # - name: ml-word2vec
+    #   type: embed
+    #   algorithm: word2vec
+    #   # uri: ./data/model/word2vec-wiki-words-500-with-normalization
+    #   uri: 'nas://cmp-model-repos-nas/word2vec-wiki-words-500-with-normalization'
+
+    - name: ml-clustering
+      type: cluster
+      algorithm: kmeans
+      # uri: './data/model/cluster/kmeans.model'
+      # uri: 'nas://cmp-model-repos-nas/kmeans.model'
+      uri: 'git://cmp-model-repos-git/kmeans.model'
+
+    - name: ml-forecast
+      type: sequential
+      algorithm: BiLSTM
+      # uri: './data/model/sequential/ml-forecast-bilstm.model'
+      # uri: 'nas://cmp-model-repos-nas/anomaly/ml-forecast-bilstm-HW-Log'
+      # uri: 'git://cmp-model-repos-git/anomaly/ml-forecast-bilstm.model'
+      uri: 'git://cmp-model-repos-git/anomaly/ml-forecast-bilstm-HW-Log'
+
+    - name: ml-scaling
+      type: scaling
+      algorithm : z-score
+      # uri: 'nas://cmp-model-repos-nas/ml-scaling-zscore'
+      uri: 'git://cmp-model-repos-git/ml-scaling-zscore'
+
+
+  # set repository info.
+  repository:
+    - name: cmp-model-repos-git
+      type: git
+      # uri: "http://root:1234**1234**@210.217.178.154:6060/root/cmp-ai-model-repos.git"
+      uri: 'http://{{user}}:{{password}}@210.217.178.154:6060/root/cmp-ai-model-anomaly.git'
+      user: root
+      pwd: jYWoefMXG0TStvDyFD8h5U9kdV5asvaVnko28+xYatY=
+      branch: master
+      local: ./data/repos/git
+
+    - name: cmp-model-repos-nas
+      type: nas
+      local: ./data/repos/nas
+
+  # # set input and output data period and interval info.
+  # period:
+  #   - name: input-log-period
+  #     type: input
+  #     month: 1
+  #     frequency: 1s
+
+  #   - name: output-log-period
+  #     type: output
+  #     month: 1
+  #     frequency: 1s
+
+  #   - name: output-log-period
+  #     type: train
+  #     month: 1
+  #     frequency: 1s
+
+  # set the preprocessing type and method info.
+  preprocess:
+    - name: cmp-log-token
+      type: token
+      punctuation: true
+      digits: true
+
+  # set the log search period and method.
+  searcher:
+    - name: train-searcher
+      type: train
+      scroll: 6h
+      ago: 12h
+
+    - name: forecast-searcher
+      type: forecast
+      scroll: 6h
+      ago: 12h
+
+  # set up machine learning hyperparameters and sampling conditions.
+  machine:
+    - name: ml-clustering
+      type: cluster
+      algorithm: kmeans
+      # clusters: auto
+      clusters: 3
+      # export: './data/model/cluster/kmeans.model'
+      # export: 'nas://cmp-model-repos-nas/kmeans.model'
+      export: 'git://cmp-model-repos-git/kmeans.model'
+
+    - name: ml-model
+      type: sequential
+      algorithm: BiLSTM
+      unit: 128
+      # export: './data/model/sequential/{{service.name}}_{{database.name}}_{{model.name}}_{{model.algorithm}}'
+      # export: './data/model/sequential/ml-forecast-bilstm.model'
+      # export: 'nas://cmp-model-repos-nas/anomaly/ml-forecast-bilstm-HW-Log'
+      # export: 'git://cmp-model-repos-git/anomaly/ml-forecast-bilstm.model'
+      export: 'git://cmp-model-repos-git/anomaly/ml-forecast-bilstm-HW-Log'
+    
+    - name: ml-scaling
+      type: scaling
+      algorithm : z-score
+      # export: 'nas://cmp-model-repos-nas/ml-scaling-zscore'
+      export: 'git://cmp-model-repos-git/ml-scaling-zscore'
+
+    - name: ml-checkpoints
+      type: checkpoints
+      monitor: val_loss
+      save_best_only: true
+
+    - name: ml-hyperparam
+      type: hyperparameter
+      epochs: 3
+      batch: 3
+      loss: MeanSquaredError
+      optimizer: Adam
+      metrics: [MeanAbsoluteError, MeanAbsolutePercentageError]
+
+    - name: ml-early-stopping
+      type: earlystopping
+      monitor: loss
+      patience: 10
+      mode: min
+
+    - name: ml-recovery
+      type: recovery
+      mode: auto
+
+    - name: ml-sampling
+      type: sampling
+      train: 0.7
+      val: 0.3
+      test: 0.0
+      searcher: ml-train-searcher
+
+    - name: ml-forecast
+      type: forecast
+      period: 1h
+      term: 1m
+
+  # set up machine learning hyperparameters and sampling conditions.
+  scheduler:
+    # - name: train
+      # * type
+      #   -  interval | cron | date
+      #
+      # * common parameters
+      #   - timezone
+      #
+      # * cron paramters
+      #   - year | month | day | week | day_of_week | hour | minute | second 
+      #   - Not support
+      #     start_date | end_date
+      #   - from_crontab : '0 * * * *'
+      #     ┌───────────── minute (0 - 59)
+      #     │ ┌───────────── hour (0 - 23)
+      #     │ │ ┌───────────── day of the month (1 - 31)
+      #     │ │ │ ┌───────────── month (1 - 12)
+      #     │ │ │ │ ┌───────────── day of the week (0 - 6) (Sunday to Saturday;
+      #     │ │ │ │ │                                   7 is also Sunday on some systems)
+      #     │ │ │ │ │
+      #     │ │ │ │ │
+      #     * * * * * <command to execute>
+      # * interval paramters
+      #   - weeks | days | hours | minutes | seconds | end_date
+      #   - Not support
+      #     start_date | end_date
+      #
+      # * date paramters
+      #   - run_date
+      
+      # type: cron
+      # second: 10
+     
+      # type: interval
+      # seconds: 10
+
+    - name: searcher
+      type: interval
+      minutes: 1
+
+    - name: train
+      type: date
+      run_date: '2021-11-09 07:08:30'
+
+    - name: forecast
+      type: interval
+      second: 30
+
+
