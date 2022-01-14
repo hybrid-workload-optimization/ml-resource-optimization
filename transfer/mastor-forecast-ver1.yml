@@ -1,0 +1,105 @@
+version: '1.0'
+
+services:
+  port: 5050
+  type: transfer
+  name: transfer-learning
+  route: '210.217.178.154:5054'
+  endpoint: ['/v1/train', '/v1/forecast']
+
+
+  # set ml model info.
+  database:
+    - name: cmp-rsc-csv
+      type: csv
+      uri: 'nas://cmp-model-repos-nas/data/stat_host_graph_temp_20211215.csv'
+
+  # set repository info.
+  repository:
+    - name: cmp-model-repos-nas
+      type: nas
+      local: ./data/repos/nas
+
+    - name: cmp-model-repos-git
+      type: git
+      uri: 'http://{{user}}:{{password}}@210.217.178.154:6060/root/cmp-ai-model-repos.git'
+      user: root
+      pwd: jYWoefMXG0TStvDyFD8h5U9kdV5asvaVnko28+xYatY=
+      branch: master
+      local: ./data/repos/git
+
+  # set ml model info.
+  import:
+    - name: ml-forecast
+      type: sequential
+      algorithm: BiLSTM
+      uri: 'nas://cmp-model-repos-nas/nclvm.all.nclado.kbstar.local'
+      
+    - name: ml-scaling
+      type: scaler
+      algorithm : PowerScaler
+      uri: 'nas://cmp-model-repos-nas/nclvm.all.nclado.kbstar.local/meta.scaler.pkl'
+
+  target:
+    - name: ml-resource
+      type: resource
+      column: 'NAME'
+      value: [
+        'nclvm20105.nclado.kbstar.local',
+        'nclvm20106.nclado.kbstar.local',
+        'nclvm20307.nclado.kbstar.local',
+        # 'nclvm20408.nclado.kbstar.local',
+        # 'nclvm20414.nclado.kbstar.local',
+        # 'nclvm20415.nclado.kbstar.local',
+        # 'nclvm20416.nclado.kbstar.local',
+        # 'nclvm20417.nclado.kbstar.local'
+      ]
+
+  # set up machine learning hyperparameters and sampling conditions.
+  machine:
+    - name: ml-model
+      type: sequential
+      algorithm: BiLSTM
+      unit: 128
+      period: 1
+      # term: 720h # = 1month * 30day * 24h
+      # term: 1440h # = 2month * 30day * 24h
+      # term: 2160h # = 3month * 30day * 24h
+      term: 4320h # = 6month * 30day * 24h
+      # term: 8760h # = 365day * 24h
+      transfer: false
+
+    - name: ml-period
+      type: forecast
+      period: 1
+      term: 720h # * 30day * 24h
+
+    - name: ml-feature
+      type: features
+      key: 'DATE'
+      columns: ['TOTAL_CPUCNT', 'ALLOC_CPUCNT', 'TOTAL_MEM_GB', 'ALLOC_MEM_GB', 'WEEEKDAY']
+      input: ['ALLOC_CPUCNT', 'ALLOC_MEM_GB', 'WEEEKDAY']
+      output: ['ALLOC_CPUCNT', 'ALLOC_MEM_GB', 'WEEEKDAY']
+      percent:
+        - numerator: ALLOC_CPUCNT
+          denominator: TOTAL_CPUCNT
+        - numerator: ALLOC_MEM_GB
+          denominator: TOTAL_MEM_GB
+      export:
+        cpu: ALLOC_CPUCNT
+        memory: ALLOC_MEM_GB
+        time: DATE
+
+    - name: ml-generator
+      type: generators
+      generator: WeekdayGenerator
+      feature: WEEEKDAY
+
+    - name: ml-outlier
+      type: outlier
+      algorithm: None
+
+    - name: ml-scaling
+      type: scaler
+      algorithm : PowerScaler
+
