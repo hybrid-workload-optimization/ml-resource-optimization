@@ -5,3 +5,5 @@
 1) category
 2) testing
 3) anomaly
+4) train
+5) transfer
