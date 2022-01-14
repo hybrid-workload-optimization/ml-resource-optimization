@@ -1,0 +1,21 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+    
+        {
+            "name": "Python: Current File",
+            "type": "python",
+            "request": "launch",
+            "program" : "${workspaceFolder}/sptek/spctl.py",
+            // "args" : ["train", "mastor-train-ver5.yml", "--worker=3", "--verbose=0", "--log=estimator-ml-transfer.log", "--no-route"],
+            // "args" : ["train", "mastor-train-ver5.yml", "--worker=3", "--verbose=0", "--log=estimator-ml-transfer.log", "--route"],
+            "args" : ["forecast", "mastor-forecast-ver5.yml", "--worker=3", "--verbose=0", "--log=estimator-ml-transfer.log", "--no-route"],
+            // "args" : ["forecast", "mastor-forecast-ver5.yml", "--worker=3", "--verbose=0", "--log=estimator-ml-transfer.log", "--route"],
+            "console": "integratedTerminal"
+        }
+
+    ]
+}
