@@ -1,9 +1,0 @@
-__pycache__
-*.log
-data
-_data_
-temp
-*.png
-test
-test_*
-debug
