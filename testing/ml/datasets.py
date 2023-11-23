@@ -12,11 +12,7 @@ class mnist(object):
     def __repr__(self):
         return "\n".join([
             f"MNIST DATABASE",
-            # f"training set images (9912422 bytes)",
-            # f"training set labels (28881 bytes)",
             f"train set images: {self.train_images.shape[0]}",
-            # f"test set images (1648877 bytes)",
-            # f"test set labels (4542 bytes)",
             f"test set images:{self.test_images.shape[0]}",
             f"total set images: {self.train_images.shape[0]+self.test_images.shape[0]}"            
             f"\n"
@@ -62,7 +58,6 @@ class climate(object):
 
 
     def preprocess(self, sample_size=None):
-        # slice [start:stop:step], starting from index 5 take every 6th record.
         df = self.data[5::6]
         date_time = pd.to_datetime(df.pop('Date Time'), format='%d.%m.%Y %H:%M:%S')
 
@@ -80,17 +75,13 @@ class climate(object):
         wv = df.pop('wv (m/s)')
         max_wv = df.pop('max. wv (m/s)')
 
-        # Convert to radians.
         wd_rad = df.pop('wd (deg)')*np.pi / 180
 
-        # Calculate the wind x and y components.
         df['Wx'] = wv*np.cos(wd_rad)
         df['Wy'] = wv*np.sin(wd_rad)
 
-        # Calculate the max wind x and y components.
         df['max Wx'] = max_wv*np.cos(wd_rad)
         df['max Wy'] = max_wv*np.sin(wd_rad)
-
 
         print(f"Feature engineering to model time data")
         timestamp_s = date_time.map(pd.Timestamp.timestamp)
