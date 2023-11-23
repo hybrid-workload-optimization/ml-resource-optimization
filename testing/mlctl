@@ -9,14 +9,16 @@ function dataset_process(){
   echo "size: 11M"
 }
 
+
 function start_process(){
   echo "Start the model training process."
   rm -rf fig
   mkdir fig
   rm -rf log
-  mkdir log
-  python ./ml/evaluate.py | tee ./log/evaluate.log
+  mkdir log  
+  python ./ml/evaluate.py --max-epochs=30 --recover-rate=0.88 | tee ./log/evaluate.log
 }
+
 
 function kill_process(){
   echo "Kill the model training process."
@@ -25,10 +27,12 @@ function kill_process(){
   `kill -9 ${pid}`
 }
 
+
 function interrupt_process(){
   echo "Interrupt description."
-  python ./ml/evaluate.py -interrupt
+  python ./ml/evaluate.py --interrupt
 }
+
 
 function recovery_process(){
   echo "Recovery description."
@@ -36,8 +40,6 @@ function recovery_process(){
   echo "( omitted )"
   echo ""
 
-  # python ./ml/evaluate.py -recovery
-  # start=`grep -n "(recovery)" log/evaluate.log | grep -Eo '^[^:]+' | head -1`
   offset=10
   point=`grep -n "(recovery)" log/evaluate.log | grep -Eo '^[^:]+' | tail -1`
   start=`expr $point - $offset`
@@ -46,14 +48,16 @@ function recovery_process(){
   cmd="sed -n ${line} log/evaluate.log"  
   eval ${cmd}
 
-  echo ""
-  echo "( omitted )"  
+  echo " "
+  echo "( omitted )"
 }
+
 
 function logs_process(){
   echo "Outputs the model training process log."
   tail -30 log/evaluate.log
 }
+
 
 function clear_process(){
   echo "Outputs the model training process log."
@@ -61,6 +65,7 @@ function clear_process(){
   rm -rf log
   rm -rf checkpoints
 }
+
 
 case $1 in
   "dataset") dataset_process;;
