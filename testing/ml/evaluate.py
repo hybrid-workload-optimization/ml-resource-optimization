@@ -15,13 +15,29 @@ import datasets
 import model
 import recovery
 
+import argparse
+
+# Parse CLI arguments
+parser = argparse.ArgumentParser(description='Checkpoint based model training workload session recovery')
+parser.add_argument('--interrupt', action='store_true',
+                    help="train interrupt info that ML model")
+parser.add_argument('--recovery', action='store_true',
+                    help="model recovery info that ML model")
+parser.add_argument('--max-epochs', type=int, default=100,
+                    help='train model max epochs')
+parser.add_argument('--recover-rate', type=float, default=100.,
+                    help='train model max epochs')
+flag = parser.parse_args()
+
 
 def tf_print(msg):
     print(f"tensorflow {msg}")
 
+
 # check tf log level
 def check_tf_log_disable():
     return 'disable' if os.environ['TF_CPP_MIN_LOG_LEVEL'] == '3' else 'enable'
+
 
 # load dataset
 def load_dataset(dataset):
@@ -40,6 +56,7 @@ def create_tf_model(dataset):
     if dataset.name == 'climate':
         return model.climate(dataset)
 
+
 #  create checkpoint
 def create_checkpoint(path):
     checkpoint_path = Path(path)
@@ -47,18 +64,16 @@ def create_checkpoint(path):
         checkpoint_path.parent.mkdir()
     return callback.Checkpoint(checkpoint_path)
 
-    
-
 
 # main function
 def main():
 
     # check flag
     if len(sys.argv) > 1:
-        flag = sys.argv[1]
+        # flag = sys.argv[1]
         
         # check interrupt flag
-        if flag == '-interrupt':
+        if flag.interrupt:
             # create checkpoint path
             checkpoint_path = "./checkpoints/cp-{epoch:04d}.ckpt"
             checkpoint = create_checkpoint(path=checkpoint_path)
@@ -68,7 +83,7 @@ def main():
             return
 
         # check interrupt flag
-        if flag == '-recovery':
+        if flag.recovery:
             # create checkpoint path
             checkpoint_path = "./checkpoints/cp-{epoch:04d}.ckpt"
             checkpoint = create_checkpoint(path=checkpoint_path)
@@ -77,6 +92,12 @@ def main():
             tf_print(f"-- recovery description.\n{recovery_point.recovery_history()}\n")
             print(f"{recovery_point}")
             return
+    
+    # set max epochs
+    epochs = flag.max_epochs
+    
+    # set recover rate
+    recover_rate = flag.recover_rate
 
     print("")
     tf_print(f"version: {tf.version.VERSION}")
@@ -84,11 +105,10 @@ def main():
     tf_print(f"logger : {check_tf_log_disable()}\n")
     
     # initailize gpu
-    gpus.set_device_configuration(size=256)
+    gpus.set_device_configuration(size=32)
     
     # load dataset
     dataset_name = 'mnist'
-    epochs = 100
     # dataset_name = 'climate'
     dataset = load_dataset(dataset_name)
     tf_print(f"-- load datasets '{dataset_name}'.\n{dataset}")
@@ -109,7 +129,7 @@ def main():
 
     # create recoevery
     tf_print(f"-- create recoevery machine learning model {dataset.name}.")
-    recovery_point = recovery.Recovery(checkpoint, model.metrics)
+    recovery_point = recovery.Recovery(checkpoint, model.metrics, recover_rate)
     if recovery_point.is_recovery():
         recovery_point.restore(model)
         print(f"{recovery_point}\n")
@@ -170,7 +190,6 @@ def save_ml_plot(model):
     plt.savefig('./fig/evaluate.png', dpi=1200)
 
 
-
 def save_ml_plot_2(model):
     history = model.history()
     axis_loss = np.array(history['loss'])
@@ -209,9 +228,6 @@ def save_ml_plot_2(model):
     plt.savefig('./fig/evaluate.png', dpi=1200)
 
 
-
-
-
 def test(dataset, checkpoint):
     # check recovery flag
     model = create_tf_model(dataset)
@@ -232,6 +248,7 @@ def test(dataset, checkpoint):
         _, train_acc = train_model.evaluate()
         print("Accuracy of the model: {:5.2f}%".format(100*train_acc))
         print("\ncreate ml model completed...")
+
 
 if __name__ == "__main__":
     main()
