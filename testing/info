@@ -1,0 +1,25 @@
+#!/bin/bash
+
+echo "$ cat /etc/os-release"
+cat /etc/os-release
+echo ""
+
+echo '$ cat /proc/cpuinfo | grep "model name" | head -1'
+cat /proc/cpuinfo | grep 'model name' | head -1
+echo ""
+
+echo "$ free -h"
+free -h
+echo ""
+
+echo "$ df -h"
+df -h
+echo ""
+
+echo "$ lspci | egrep -i 'network|ethernet' | head -1"
+lspci | egrep -i 'network|ethernet' | head -1
+echo ""
+
+echo "$ lspci | grep -i nvidia"
+lspci | grep -i nvidia
+echo ""
