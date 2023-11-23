@@ -59,20 +59,11 @@ class climate(object):
     def __init__(self, dataset):        
         self.dataset = dataset
         self.model = tf.keras.Sequential([
-            # Shape [batch, time, features] => [batch, lstm_units]
-            # Adding more `lstm_units` just overfits more quickly.
-            # tf.keras.layers.LSTM(dataset.units, return_sequences=False),
             tf.keras.layers.Bidirectional(tf.keras.layers.LSTM(dataset.units, return_sequences=False, activation="tanh"), input_shape=(dataset.in_steps, dataset.in_features)),
-            # Shape => [batch, out_steps*features]
             tf.keras.layers.Dense(dataset.out_steps * dataset.out_features,
                                 kernel_initializer=tf.initializers.zeros),
-            # Shape => [batch, out_steps, features]
             tf.keras.layers.Reshape([dataset.out_steps, dataset.out_features])
         ])
-
-        # self.model = tf.keras.Sequential([
-        #     tf.keras.layers.Dense(units=1)
-        # ])
 
         self._history_ = None
         self.metrics = ['mean_absolute_error','val_mean_absolute_error']
