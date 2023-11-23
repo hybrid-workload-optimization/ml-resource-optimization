@@ -9,7 +9,6 @@ class Checkpoint(object):
         self.save_weights_only = True
         self.verbose = 1
         
-        # 모델의 가중치를 저장하는 콜백 만들기
         self.callback = tf.keras.callbacks.ModelCheckpoint(filepath=self.checkpoint_path,
                                                     save_weights_only=self.save_weights_only,
                                                     verbose=self.verbose)
@@ -38,8 +37,5 @@ class RecoveryCallback(tf.keras.callbacks.Callback):
         marker = {"epochs":epoch}
         for key in self.metrics:
             marker[key] = logs[key]
-        # point = logs[self.metrics]
-        # print(f"epoch: {epoch: 04d} - accuracy: {acc: 0.4f}".format(epoch=epoch, acc=acc))
-        # self.recovery.marking({"epochs":epoch, self.metrics: point})
         self.recovery.marking(marker)
         self.recovery.save()
